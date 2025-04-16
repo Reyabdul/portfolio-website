@@ -1,10 +1,26 @@
-import React from 'react'
+import React from 'react';
+//TANSTACK ROUTER
+import { RouterProvider, createRouter} from "@tanstack/react-router";
+import { routeTree } from "./routeTree.gen";
+//COMPONENTS
+//STYLES
+
+//Tanstack Router
+  //Create a router instance
+  const router = createRouter({ routeTree });
+  //Register the router instance for the type safety
+  declare module '@tanstack/react-router' {
+    interface Register {
+      router: typeof router
+    }
+  }
 
 const App = () => {
   return (
-    <div>
+    <>
       <h1>Hello World</h1>
-    </div>
+      <RouterProvider router={router} />
+    </>
   )
 }
 
