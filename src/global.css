@@ -1,1 +1,8 @@
+@import url('https://api.fontshare.com/v2/css?f[]=synonym@400,500,700,1&f[]=chillax@200,300,400,500,600,700,1&display=swap');
 @import "tailwindcss";
+
+
+@theme {
+  --font-header: "Chillax", "sans-serif";
+  --font-display: "Synonym", "serif",
+}

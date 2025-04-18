@@ -1,27 +1,25 @@
-import React from 'react';
 //TANSTACK ROUTER
-import { RouterProvider, createRouter} from "@tanstack/react-router";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 //COMPONENTS
 //STYLES
 
 //Tanstack Router
-  //Create a router instance
-  const router = createRouter({ routeTree });
-  //Register the router instance for the type safety
-  declare module '@tanstack/react-router' {
-    interface Register {
-      router: typeof router
-    }
+//Create a router instance
+const router = createRouter({ routeTree });
+//Register the router instance for the type safety
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
   }
+}
 
 const App = () => {
   return (
-    <>
-      <h1>Hello World</h1>
+    <main className="overflow-hidden">
       <RouterProvider router={router} />
-    </>
-  )
-}
+    </main>
+  );
+};
 
-export default App
+export default App;

@@ -15,6 +15,14 @@ export const homeType = defineType({
       options: {source: 'name'},
     }),
     defineField({
+      name: 'headline',
+      type: 'string',
+    }),
+    defineField({
+      name: 'subHeadline',
+      type: 'string',
+    }),
+    defineField({
       name: 'image',
       type: 'image',
       options: {hotspot: true},
@@ -35,13 +43,6 @@ export const homeType = defineType({
         }),
       ],
     }),
-    defineField({
-      name: 'headline',
-      type: 'string',
-    }),
-    defineField({
-      name: 'subHeadline',
-      type: 'string',
-    }),
+
   ],
 })
