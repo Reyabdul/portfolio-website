@@ -15,23 +15,12 @@ export const homeType = defineType({
       options: {source: 'name'},
     }),
     defineField({
-      name: 'headline',
+      name: 'heading',
       type: 'string',
     }),
     defineField({
-      name: 'subHeadline',
+      name: 'aboutLink',
       type: 'string',
-    }),
-    defineField({
-      name: 'image',
-      type: 'image',
-      options: {hotspot: true},
-      fields: [
-        defineField({
-          name: 'alt',
-          type: 'string',
-        }),
-      ],
     }),
     defineField({
       name: 'content',

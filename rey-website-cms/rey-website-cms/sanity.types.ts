@@ -76,6 +76,8 @@ export type Home = {
   _rev: string
   name?: string
   slug?: Slug
+  headline?: string
+  subHeadline?: string
   image?: {
     asset?: {
       _ref: string
@@ -107,8 +109,6 @@ export type Home = {
     _type: 'value'
     _key: string
   }>
-  headline?: string
-  subHeadline?: string
 }
 
 export type SanityImageCrop = {
