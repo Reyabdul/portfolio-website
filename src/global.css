@@ -2,7 +2,77 @@
 @import "tailwindcss";
 
 
+/* Site Stylesheet
+  1. Tailwind Themes (e.g. vriables, colors, etc)
+  2. Global Styles
+  3. Typography Styles
+  4. Page Styles
+  5. Component Styles
+
+  Note: Most things are stylized inline with Tailwind. Things that require more fine tuning or details are styled here
+
+
+
+/*
+========================================
+  1. Tailwind Themes (e.g. vriables, colors, fonts,  etc)
+======================================== */
+
 @theme {
-  --font-header: "Chillax", "sans-serif";
-  --font-display: "Synonym", "serif",
+  --font-chillax: "Chillax", "sans-serif";
+  --font-synonym: "Synonym", "serif",
+  --bg-white: "#F3F0E7"
 }
+
+/*
+======================================== 
+  2. Global Styles
+======================================== */
+
+/* General */
+* {
+
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+ul{
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+
+/*
+======================================== 
+  3. Typography Styles
+======================================== */
+/*Google Fonts*/
+
+p, a {
+  font-family: 'Synonym', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Chillax', sans-serif;
+}
+
+/*
+
+/*
+========================================
+  4. Page Styles
+======================================== */
+
+
+/*
+========================================
+  5. Component Syles
+======================================== */
+

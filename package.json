@@ -4,12 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iconscout/react-unicons": "^2.2.4",
+    "@iconscout/unicons": "^4.2.0",
+    "@portabletext/react": "^3.2.1",
     "@sanity/client": "^6.29.0",
     "@sanity/image-url": "^1.1.0",
     "@tailwindcss/vite": "^4.1.4",
@@ -20,6 +23,7 @@
     "groq": "^3.85.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
     "sanity": "^3.85.1",
     "sanity-plugin-documents-pane": "^2.4.0",
     "vercel": "^41.6.0"

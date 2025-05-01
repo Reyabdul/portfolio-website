@@ -12,7 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as WorksImport } from './routes/works'
-import { Route as AdminImport } from './routes/admin'
+import { Route as MediaImport } from './routes/media'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
@@ -24,9 +24,9 @@ const WorksRoute = WorksImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AdminRoute = AdminImport.update({
-  id: '/admin',
-  path: '/admin',
+const MediaRoute = MediaImport.update({
+  id: '/media',
+  path: '/media',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -60,11 +60,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminImport
+    '/media': {
+      id: '/media'
+      path: '/media'
+      fullPath: '/media'
+      preLoaderRoute: typeof MediaImport
       parentRoute: typeof rootRoute
     }
     '/works': {
@@ -82,14 +82,14 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/media': typeof MediaRoute
   '/works': typeof WorksRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/media': typeof MediaRoute
   '/works': typeof WorksRoute
 }
 
@@ -97,30 +97,30 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/media': typeof MediaRoute
   '/works': typeof WorksRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/admin' | '/works'
+  fullPaths: '/' | '/about' | '/media' | '/works'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/admin' | '/works'
-  id: '__root__' | '/' | '/about' | '/admin' | '/works'
+  to: '/' | '/about' | '/media' | '/works'
+  id: '__root__' | '/' | '/about' | '/media' | '/works'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
+  MediaRoute: typeof MediaRoute
   WorksRoute: typeof WorksRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
+  MediaRoute: MediaRoute,
   WorksRoute: WorksRoute,
 }
 
@@ -136,7 +136,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
-        "/admin",
+        "/media",
         "/works"
       ]
     },
@@ -146,8 +146,8 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.tsx"
     },
-    "/admin": {
-      "filePath": "admin.tsx"
+    "/media": {
+      "filePath": "media.tsx"
     },
     "/works": {
       "filePath": "works.tsx"
