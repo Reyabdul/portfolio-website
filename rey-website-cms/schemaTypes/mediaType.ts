@@ -1,4 +1,4 @@
-import { DefineArrayMember, defineField, defineType } from "sanity";
+import { defineField, defineType } from "sanity";
 
 export const mediaType = defineType({
   name: 'media',
