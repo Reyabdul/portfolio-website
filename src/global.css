@@ -21,7 +21,8 @@
 @theme {
   --font-chillax: "Chillax", "sans-serif";
   --font-synonym: "Synonym", "serif",
-  --bg-white: "#F3F0E7"
+  --bg-white: "#F3F0E7",
+  
 }
 
 /*
@@ -37,6 +38,8 @@
 
 html {
   scroll-behavior: smooth;
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
 }
 
 
@@ -47,6 +50,13 @@ ul{
 a {
   text-decoration: none;
 }
+
+body {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+
+  }
+
 
 
 /*

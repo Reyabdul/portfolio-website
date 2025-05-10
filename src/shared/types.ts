@@ -11,3 +11,24 @@ export interface Home {
     };
   };
 } 
+
+// Define WorkType for proper typing of works data
+type WorkType = {
+  _id: string;
+  heading: string;
+  image: {
+    _type: string;
+    asset: {
+      _ref: string;
+      _type: string;
+    };
+    alt?: string;
+  };
+  year?: string;
+  stacks?: string[];
+  links?: {
+    title: string;
+    url: string;
+  }[];
+  details?: string;
+};

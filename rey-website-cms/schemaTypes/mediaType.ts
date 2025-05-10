@@ -11,7 +11,8 @@ export const mediaType = defineType({
     }),
     defineField({
       name: 'slug',
-      type: 'slug'
+      type: 'slug',
+      options: {source: 'name'}
     }),
   ]
 })

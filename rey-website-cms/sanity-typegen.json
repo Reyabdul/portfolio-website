@@ -1,8 +1,5 @@
 {
-  // 'path' specifies where Sanity TypeGen looks for GROQ queries: all files in the frontend's src folder
   "path": "../src/**/*.{ts,tsx,js,jsx}",
-  // 'schema' is the static schema representation; default is 'schema.json'
   "schema": "schema.json",
-  // 'generates' sets the output path for generated TypeScript definitions, here in the frontend's sanity folder
-  "generates": "../src/sanity/sanity.types.ts"
+  "generates": "../src/shared/sanity.types.ts"
 }

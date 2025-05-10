@@ -3,7 +3,7 @@ export const Footer = () => {
 
   return (
     <div>
-      <footer className="w-full p-2 fixed" id="footer">
+      <footer className="w-full text-normal p-4 fixed bottom-0" id="footer">
         <p className="copyright">&#169;Rey Abdul {date.getFullYear()}</p>
         {/* <button className="contact-button button" id="contact-button">
             <span><p className="contact">Contact</p></span>

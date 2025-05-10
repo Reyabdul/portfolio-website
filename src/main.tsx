@@ -14,8 +14,8 @@ import './global.css'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
-      <ReactQueryDevtools />
+        <App />
+      {/* <ReactQueryDevtools /> */}
     </QueryClientProvider>
   </StrictMode>,
 )

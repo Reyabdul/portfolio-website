@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import type { Home as HomeType } from "../shared/types";
+import type { Home as HomeType, Work as WorkType } from "../shared/types";
+
 //SANITY
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types"; //https://www.sanity.io/plugins/next-sanity-image
@@ -10,7 +11,12 @@ import { motion } from "framer-motion";
 //STYLES
 import "../global.css";
 import { PortableText } from "@portabletext/react";
-// import Social from "../components/Social";
+import { useEffect, useRef, useState, useCallback } from "react";
+
+// Define
+type HomeRef = HTMLElement;
+type SelfIntroRef = HTMLElement;
+type WorksRef = HTMLElement;
 
 //Sanity - Image url builder
 const builder = imageUrlBuilder(client);
@@ -18,18 +24,35 @@ function urlFor(source: SanityImageSource) {
   return builder.image(source);
 }
 
-//Home component
+//Home route
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
+//Home Component
 function Home() {
+  // Refs for intersection observer
+  const homePageRef = useRef<HomeRef | null>(null);
+  const selfIntroRef = useRef<SelfIntroRef | null>(null);
+  const workRef = useRef<WorksRef | null>(null);
+  
+  // State for tracking whether to show dark background
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  // State to track scrolling animation state
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
+
+  /*
+  ========================================
+  DATA
+  ======================================== 
+  */
+
   // 'Homepage' data
   const {
     data: homeData,
     error: homeError,
     isLoading: homeLoading,
-  } = useQuery({
+  } = useQuery<HomeType, Error>({
     queryKey: ["home"],
     queryFn: () => client.fetch<HomeType>('*[_type == "home"][0]'),
   });
@@ -39,21 +62,200 @@ function Home() {
     data: worksData,
     error: worksError,
     isLoading: worksLoading,
-  } = useQuery({
+  } = useQuery<WorkType[], Error>({
     queryKey: ["works"],
-    queryFn: () => client.fetch('*[_type == "works"]'),
+    queryFn: () => client.fetch<WorkType[]>('*[_type == "works"]'),
   });
 
-  console.log(worksData);
+  // Debounce function to limit scroll events
+  const debounce = useCallback(<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+  ): ((...args: Parameters<T>) => void) => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    
+    return (...args: Parameters<T>) => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }, []);
 
-  // Use the correct variables for home data
+  // Function to handle scroll snapping
+  const handleScroll = useCallback((e: WheelEvent) => {
+    // Prevent default only if we're not already scrolling
+    if (!isScrolling) {
+      e.preventDefault();
+      
+      // Get all section elements with snapping
+      const sections = document.querySelectorAll('.snap-always');
+      if (!sections || sections.length === 0) return;
+      
+      // Determine scroll direction
+      const direction = e.deltaY > 0 ? 1 : -1;
+      
+      // Find the current section in view
+      let currentSectionIndex = -1;
+      sections.forEach((section, index) => {
+        const rect = section.getBoundingClientRect();
+        // If section is mostly in view, consider it the current section
+        if (rect.top <= 100 && rect.bottom >= window.innerHeight / 2) {
+          currentSectionIndex = index;
+        }
+      });
+      
+      // Calculate the next section to scroll to
+      let nextIndex = currentSectionIndex + direction;
+      
+      // Clamp the index to available sections
+      if (nextIndex < 0) nextIndex = 0;
+      if (nextIndex >= sections.length) nextIndex = sections.length - 1;
+      
+      // Scroll to the next section if it's different from current
+      if (nextIndex !== currentSectionIndex) {
+        setIsScrolling(true);
+        
+        sections[nextIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+        
+        // Reset isScrolling after animation completes (typical smooth scroll takes ~500ms)
+        setTimeout(() => setIsScrolling(false), 1000);
+      }
+    }
+  }, [isScrolling]);
+
+  // Set up Intersection Observer for dark mode
+  useEffect(() => {
+    // Only run the observer if elements are available
+    if (!selfIntroRef.current || !workRef.current) return;
+
+    const options = {
+      root: null, // Use the viewport as root
+      threshold: 0.1, // Trigger when 10% of element is visible
+      rootMargin: "-100px 0px", // Margin around the root
+    };
+
+    // Observer for self-intro and work sections
+    const observer = new IntersectionObserver((entries) => {
+      // Check if any of the observed elements are intersecting
+      const isAnyElementIntersecting = entries.some(entry => entry.isIntersecting);
+      
+      // Set dark mode if any element is intersecting
+      setIsDarkMode(isAnyElementIntersecting);
+      
+      // Log which section is visible
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          console.log(`${entry.target.id} is visible, applying dark mode`);
+        }
+      });
+    }, options);
+
+    // Start observing both elements
+    observer.observe(selfIntroRef.current);
+    observer.observe(workRef.current);
+
+    // Cleanup function
+    return () => {
+      if (selfIntroRef.current) {
+        observer.unobserve(selfIntroRef.current);
+      }
+      if (workRef.current) {
+        observer.unobserve(workRef.current);
+      }
+      observer.disconnect();
+    };
+  }, []);
+
+  // Set up wheel event listener for scroll snapping
+  useEffect(() => {
+    // Initialize smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+    
+    // Use a debounced version of the wheel handler to prevent too many events
+    const debouncedHandleScroll = debounce((e: WheelEvent) => {
+      handleScroll(e);
+    }, 50);
+    
+    // Add wheel event listener with passive: false to allow preventDefault
+    window.addEventListener('wheel', debouncedHandleScroll, { passive: false });
+    
+    // Handle keyboard navigation
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const fakeWheelEvent = {
+          deltaY: e.key === 'ArrowDown' ? 100 : -100,
+          preventDefault: () => {}
+        } as WheelEvent;
+        handleScroll(fakeWheelEvent);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // Add touch events for mobile
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchStartY - touchEndY;
+      
+      // Only trigger if the swipe is substantial
+      if (Math.abs(deltaY) > 50) {
+        const fakeWheelEvent = {
+          deltaY: deltaY,
+          preventDefault: () => {}
+        } as WheelEvent;
+        handleScroll(fakeWheelEvent);
+      }
+    };
+    
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchend', handleTouchEnd);
+    
+    return () => {
+      // Cleanup
+      window.removeEventListener('wheel', debouncedHandleScroll);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+      document.documentElement.style.scrollBehavior = '';
+    };
+  }, [handleScroll, debounce]);
+
+  // Loading and error states
   if (homeLoading || worksLoading) return <div>Loading...</div>;
   if (homeError || worksError)
-    return <div>Error: {(homeError || (worksError as Error)).message}</div>;
+    return <div>Error: {homeError?.message || worksError?.message}</div>;
   if (!homeData || !worksData) return <div>No data found</div>;
 
+  // Animation variants for sliding content
+  const slideInFromLeft = {
+    hidden: { x: -100, opacity: 0 },
+    visible: { 
+      x: 0, 
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 100, 
+        damping: 15,
+        duration: 0.8
+      }
+    }
+  };
+
   return (
-    <section className="h-full w-screen overflow-x-hidden px-8">
+    <section 
+      className={`h-full w-screen overflow-x-hidden p-8 transition-colors duration-500 ${isDarkMode ? 'bg-black text-white' : 'bg-white text-black'} snap-y snap-mandatory`}
+      id="home-page"
+      ref={homePageRef}
+    >
       {/*
       ========================================
         Blob Animation
@@ -61,7 +263,9 @@ function Home() {
       */}
 
       {/* Mobile screens */}
-      <div className="md:hidden h-full w-screen fixed inset-0 overflow-x-hidden">
+      <div 
+        className="md:hidden h-full w-screen fixed inset-0 overflow-x-hidden"
+      >
         <motion.div
           className="fixed w-[400px] h-[400px] bg-black/35 rounded-full blur-3xl"
           animate={{
@@ -82,7 +286,6 @@ function Home() {
             x: [0, -150, 100, 0],
             y: [0, 80, -120, 0],
             scale: [1, 0.9, 1.1, 1],
-            // scale: [1, 0.9, 1.1, 1] original settings
           }}
           transition={{
             duration: 25,
@@ -129,7 +332,6 @@ function Home() {
             x: [0, -150, 100, 0],
             y: [0, 80, -120, 0],
             scale: [1, 0.9, 1.1, 1],
-            // scale: [1, 0.9, 1.1, 1] original settings
           }}
           transition={{
             duration: 25,
@@ -159,13 +361,20 @@ function Home() {
       Header (REY ABDUL)
       ======================================== */}
 
-      <div className="w-screen h-screen flex flex-col">
-        <h2
-          className="text-[3.5rem] font-extrabold absolute top-7/10"
+      <div 
+        id="home-hero" 
+        className="w-screen h-screen flex flex-col snap-start snap-always"
+        >
+        <motion.h2
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.3 }}
+          variants={slideInFromLeft}
+          className="text-[6rem] font-extrabold absolute top-6/10 leading-none"
           id="heading"
         >
           {homeData.heading}
-        </h2>
+        </motion.h2>
         {/* <h3 className="text-[1rem] mb-10 absolute top-8/10" id="sub-heading">{homeData.subHeadline}</h3> */}
       </div>
 
@@ -176,21 +385,24 @@ function Home() {
 
       <div
         id="self-intro"
-        className="w-full h-screen font-bold grid grid-cols-1 content-center"
+        ref={selfIntroRef}
+        className="self-intro w-full h-screen font-bold grid grid-cols-1 content-center snap-start snap-always px-8"
       >
-        <div>
-          <h3 className="text-[2.2rem] mb-2">
-            <PortableText value={homeData.content} />
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.3 }}
+          variants={slideInFromLeft}
+        >
+          <h3 className="text-[2rem] mb-4">
+            {homeData.content && <PortableText value={homeData.content} />}
           </h3>
           <Link to="/about">
-            {/* <div className="w-full border-b-2"> */}
-            <p className="text-[0.8rem] w-fit border-b-2 font-medium">
-              {/* {homeData.aboutLink} */}
+            <p className="text-xs w-fit border-b-2 font-medium">
               GET TO KNOW ME
             </p>
-            {/* </div> */}
           </Link>
-        </div>
+        </motion.div>
       </div>
 
       {/*
@@ -200,60 +412,91 @@ function Home() {
 
       <div
         id="project-section"
-        className="bg-yellow-500 w-full h-full grid grid-cols-1 place-content-center"
+        ref={workRef}
+        className="w-full h-full grid grid-cols-1 py-10 place-content-center transition-colors duration-500 snap-start snap-always"
       >
-        <h2 className="text-2xl font-bold border-l-10 pl-1">Works</h2>
-        <div className="w-full h-full p-4 ">
-          {/* The following line is commented out because 'image' is not defined in the HomeType or fetched data.
-              Uncomment and adjust if/when you add an image field to your HomeType and Sanity data. */}
-          {/* {Array.isArray(worksData) && worksData.length > 0 && worksData[0].image && (
-            <img
-              src={urlFor(worksData[0].image).url()}
-              alt={worksData[0].image.alt || "Project image"}
-            />
-          )} */}
-          {worksData.map((w) => {
-            return (
-              <>
-                <h3 className="font-extrabold text-1xl">{w.heading}</h3>
-                <div className="my-5 flex flex-col justify-center items-center border-y-8">
-                  <img
-                    src={urlFor(w.image).url()}
-                    alt={w.image.alt || "Project image"}
-                    className="w-4/5 my-8"
-                  />
+        <motion.h2 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.3 }}
+          variants={slideInFromLeft}
+          className="text-2xl font-bold border-l-4 border-yellow-500 pl-4"
+        >
+          <p className="text-4xl">
+            Works
+          </p> 
+        </motion.h2>
+        <div className="w-full h-full md:grid-cols-2 p-4">
+          {Array.isArray(worksData) && worksData.length > 0 && 
+            worksData.map((work) => (
+              <motion.div 
+                key={work._id}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.2 }}
+                variants={slideInFromLeft}
+              >
+                <h4 className="font-extrabold text-2xl">{work.heading}</h4>
+                <div className="my-5 flex flex-col justify-center items-center border-y-8 border-black">
+                  {work.image && (
+                    <motion.img
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: false, amount: 0.3 }}
+                      variants={slideInFromLeft}
+                      src={urlFor(work.image).url()}
+                      alt={work.image.alt || "Project image"}
+                      className="w-4/5 my-8"
+                    />
+                  )}
 
-                  <div id="project-details" className="my-2">
+                  <motion.div 
+                    id="project-details" 
+                    className="my-2 w-full"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: false, amount: 0.3 }}
+                    variants={slideInFromLeft}
+                  >
                     <div className="border-y-2 py-4">
-                      <p>Details</p>
-                      <p>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                        Explicabo earum suscipit iste libero exercitationem
-                        voluptas, quaerat ipsam dolorum reprehenderit, eos
-                        numquam repudiandae aut ex modi eum accusamus corrupti
-                        fuga quos!
-                      </p>
+                      <p className="font-bold">Details</p>
+                      <p>{work.details || "No details available"}</p>
                     </div>
 
                     <div className="border-b-2 py-2">
-                      <p>Year</p>
-                      <p>2025</p>
+                      <p className="font-bold">Year</p>
+                      <p>{work.year || "N/A"}</p>
                     </div>
 
                     <div className="border-b-2 py-2">
-                      <p>Stacks</p>
-                      <p>React, Tailwind</p>
+                      <p className="font-bold">Stacks</p>
+                      <p>{work.stacks ? work.stacks.join(", ") : "Not specified"}</p>
                     </div>
 
-                    <div className=" my-2">
-                      <p>Links:</p>
-                      <p>Git Tailwind</p>
+                    <div className="my-8">
+                      <p className="font-bold">Links:</p>
+                      {work.links && work.links.length > 0 ? (
+                        <p>
+                          {work.links.map((link, index) => (
+                            <span key={index}>
+                              {index > 0 && " "}
+                              <a href={link.url} className="underline">
+                                {link.title}
+                              </a>
+                            </span>
+                          ))}
+                        </p>
+                      ) : (
+                        <p>No links available</p>
+                      )}
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
-              </>
-            );
-          })}
+              </motion.div>
+            ))}
+          {(!Array.isArray(worksData) || worksData.length === 0) && (
+            <p>No works available</p>
+          )}
         </div>
       </div>
     </section>

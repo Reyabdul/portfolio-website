@@ -8,10 +8,12 @@ export const worksType = defineType({
     defineField({
       name: 'name',
       type: 'string',
+      
     }),
     defineField({
       name: 'slug',
       type: 'slug',
+      options: {source: 'name'},
     }),
     defineField({
       name: 'heading',
