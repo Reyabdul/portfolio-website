@@ -24,8 +24,6 @@ export const Header = () => {
 
   const {
     data: menuData,
-    error: menuError,
-    isLoading: menuLoading,
   } = useQuery({
     queryKey: ["menu"],
     queryFn: () => client.fetch('*[_type == "menu"][0]'),

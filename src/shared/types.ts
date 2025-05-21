@@ -10,10 +10,11 @@ export interface Home {
       altText?: string;
     };
   };
+  heading?: string;
 } 
 
 // Define WorkType for proper typing of works data
-type WorkType = {
+export type WorkType = {
   _id: string;
   heading: string;
   image: {

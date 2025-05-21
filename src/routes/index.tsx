@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import type { Home as HomeType, Work as WorkType } from "../shared/types";
+import type { Home as HomeType, WorkType } from "../shared/types";
 //SANITY
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types"; //https://www.sanity.io/plugins/next-sanity-image
@@ -11,11 +11,12 @@ import { motion } from "framer-motion";
 import "../global.css";
 import { PortableText } from "@portabletext/react";
 import { useEffect, useRef, useState, useCallback } from "react";
+import type { TypedObject } from "@portabletext/types";
 
 // Define
 type HomeRef = HTMLElement;
 type SelfIntroRef = HTMLElement;
-type WorksRef = HTMLElement;
+type WorksRef = HTMLDivElement;
 
 //Sanity - Image url builder
 const builder = imageUrlBuilder(client);
@@ -71,20 +72,16 @@ function Home() {
   ======================================== */
 
   // Debounce function to limit scroll events
-  const debounce = useCallback(
-    <T extends (...args: any[]) => any>(
-      func: T,
-      wait: number
-    ): ((...args: Parameters<T>) => void) => {
-      let timeout: ReturnType<typeof setTimeout> | null = null;
-
-      return (...args: Parameters<T>) => {
-        if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-      };
-    },
-    []
-  );
+  const debounce = useCallback(<T extends (...args: unknown[]) => void>(
+    func: T,
+    wait: number
+  ): ((...args: Parameters<T>) => void) => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<T>) => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }, []);
 
   // Function to handle scroll snapping
   const handleScroll = useCallback(
@@ -163,17 +160,21 @@ function Home() {
       });
     }, options);
 
+    // Capture ref values inside the effect
+    const selfIntroElement = selfIntroRef.current;
+    const workElement = workRef.current;
+
     // Start observing both elements
-    observer.observe(selfIntroRef.current);
-    observer.observe(workRef.current);
+    observer.observe(selfIntroElement);
+    observer.observe(workElement);
 
     // Cleanup function
     return () => {
-      if (selfIntroRef.current) {
-        observer.unobserve(selfIntroRef.current);
+      if (selfIntroElement) {
+        observer.unobserve(selfIntroElement);
       }
-      if (workRef.current) {
-        observer.unobserve(workRef.current);
+      if (workElement) {
+        observer.unobserve(workElement);
       }
       observer.disconnect();
     };
@@ -185,8 +186,8 @@ function Home() {
     document.documentElement.style.scrollBehavior = "smooth";
 
     // Use a debounced version of the wheel handler to prevent too many events
-    const debouncedHandleScroll = debounce((e: WheelEvent) => {
-      handleScroll(e);
+    const debouncedHandleScroll = debounce((...args: unknown[]) => {
+      handleScroll(args[0] as WheelEvent);
     }, 50);
 
     // Add wheel event listener with passive: false to allow preventDefault
@@ -241,10 +242,25 @@ function Home() {
   }, [handleScroll, debounce]);
 
   // Loading and error states
-  if (homeLoading || worksLoading) return <div>Loading...</div>;
-  if (homeError || worksError)
-    return <div>Error: {homeError?.message || worksError?.message}</div>;
-  if (!homeData || !worksData) return <div>No data found</div>;
+  if (homeLoading || worksLoading) return (
+    <div className="h-screen w-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+    </div>
+  );
+  
+  if (homeError || worksError) return (
+    <div className="h-screen w-screen flex items-center justify-center">
+      <div className="text-red-500">
+        Error: {homeError?.message || worksError?.message}
+      </div>
+    </div>
+  );
+  
+  if (!homeData || !worksData) return (
+    <div className="h-screen w-screen flex items-center justify-center">
+      <div className="text-gray-500">No data found</div>
+    </div>
+  );
 
   // Animation variants for sliding content
   const slideInFromLeft = {
@@ -394,7 +410,7 @@ function Home() {
 
       <div
         id="self-intro"
-        ref={selfIntroRef}
+        ref={selfIntroRef as React.RefObject<HTMLDivElement>}
         className="self-intro w-full md:w-1/2 h-screen font-bold grid grid-cols-1 content-center snap-start snap-always z-6"
       >
         <motion.div
@@ -404,7 +420,7 @@ function Home() {
           variants={slideInFromLeft}
         >
           <h3 className="text-[2rem] mb-4">
-            {homeData.content && <PortableText value={homeData.content} />}
+            {homeData.content && <PortableText value={homeData.content as TypedObject[]} />}
           </h3>
           <Link to="/about" className="z-6">
             <p className="text-xs w-fit border-b-2 font-medium z-4">
@@ -436,7 +452,7 @@ function Home() {
         <div className="z-3 w-full h-full p-4">
           {Array.isArray(worksData) &&
             worksData.length > 0 &&
-            worksData.map((work) => (
+            worksData.map((work: WorkType) => (
               <motion.div
                 key={work._id}
                 initial="hidden"
@@ -500,7 +516,7 @@ function Home() {
                         <p className="font-bold">Links:</p>
                         {work.links && work.links.length > 0 ? (
                           <p>
-                            {work.links.map((link, index) => (
+                            {work.links.map((link: { title: string; url: string }, index: number) => (
                               <span key={index}>
                                 {index > 0 && " "}
                                 <a href={link.url} className="underline">

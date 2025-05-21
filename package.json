@@ -15,6 +15,7 @@
     "@iconscout/react-unicons": "^2.2.4",
     "@iconscout/unicons": "^4.2.0",
     "@portabletext/react": "^3.2.1",
+    "@portabletext/types": "^2.0.13",
     "@sanity/client": "^6.29.0",
     "@sanity/image-url": "^1.1.0",
     "@tailwindcss/vite": "^4.1.4",
@@ -28,7 +29,7 @@
     "react-icons": "^5.5.0",
     "sanity": "^3.85.1",
     "sanity-plugin-documents-pane": "^2.4.0",
-    "vercel": "^41.6.0"
+    "vercel": "^42.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
